@@ -1561,32 +1561,55 @@ func (o *Object) writeMetadata(metadata fs.Metadata) (err error) {
 }
 
 func cleanRootPath(s string, noUNC bool, enc encoder.MultiEncoder) string {
-	if runtime.GOOS != "windows" || !strings.HasPrefix(s, "\\") {
-		if !filepath.IsAbs(s) {
-			s2, err := filepath.Abs(s)
-			if err == nil {
-				s = s2
-			}
-		} else {
-			s = filepath.Clean(s)
-		}
-	}
+	fmt.Println("输入为", s)
+	var vol string
 	if runtime.GOOS == "windows" {
-		s = filepath.ToSlash(s)
-		vol := filepath.VolumeName(s)
+		vol = filepath.VolumeName(s)
 		if vol == `\\?` && len(s) >= 6 {
 			// `\\?\C:`
 			vol = s[:6]
 		}
-		s = vol + enc.FromStandardPath(s[len(vol):])
+		s = s[len(vol):]
+	}
+	fmt.Println(vol)
+	fmt.Println(s)
+	// Don't use FromStandardPath. Make sure Dot (`.`, `..`) as name will not be reencoded
+	if enc != encoder.Standard {
+		s = filepath.ToSlash(s)
+		parts := strings.Split(s, "/")
+		encoded := make([]string, len(parts))
+		changed := false
+		for i, p := range parts {
+			if (p == ".") || (p == "..") {
+				encoded[i] = p
+				continue
+			}
+			part := enc.FromStandardName(p)
+			changed = changed || part != p
+			encoded[i] = part
+		}
+		if changed {
+			s = strings.Join(encoded, "/")
+		}
 		s = filepath.FromSlash(s)
+	}
+	fmt.Println(s)
+	if runtime.GOOS == "windows" {
+		s = vol + s
+	}
+	fmt.Println(s)
+	s2, err := filepath.Abs(s)
+	if err == nil {
+		s = s2
+	}
+	fmt.Println(s)
+	if runtime.GOOS == "windows" {
 		if !noUNC {
 			// Convert to UNC
 			s = file.UNCPath(s)
 		}
-		return s
 	}
-	s = enc.FromStandardPath(s)
+	fmt.Println("结果为", s)
 	return s
 }
 
