@@ -575,7 +575,7 @@ retryFileCreate:
 }
 
 func (f *Fs) apiFileLocateUpload(ctx context.Context) error {
-	opt := NewRequest(http.MethodGet, "https://d.terabox.com/rest/2.0/pcs/file?method=locateupload")
+	opt := NewRequest(http.MethodGet, "/rest/2.0/pcs/file?method=locateupload")
 	opt.Parameters = nil
 
 	var res api.ResponseFileLocateUpload
