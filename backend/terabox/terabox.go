@@ -209,7 +209,6 @@ func NewFs(ctx context.Context, name string, root string, config configmap.Mappe
 	if opt.UserAgent != "" {
 		clientConfig.UserAgent = opt.UserAgent
 	}
-	clientConfig.Timeout = 5 * fs.Duration(time.Second)
 
 	f.client = rest.NewClient(fshttp.NewClient(newCtx))
 
